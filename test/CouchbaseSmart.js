@@ -38,7 +38,7 @@ describe('Couchbase smart interface', function () {
     couchbase.get(key, {}, function (err, result) {
       // Asserts
       assert.ifError(err);
-      assert.equal(result.length, 1);
+      assert.ok(result.length > 0);
       assert.equal(typeof(result[0]), 'object');
       assert.equal(typeof(result[0].time), 'number');
       assert.equal(typeof(result[0].id), 'string');
