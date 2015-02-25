@@ -29,6 +29,7 @@
     "mocha": "^2.1.0"
   },
   "dependencies": {
-    "couchbase": "^2.0.5"
+    "couchbase": "^2.0.5",
+    "microtime": "^1.2.0"
   }
 }
