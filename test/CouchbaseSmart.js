@@ -27,9 +27,10 @@ describe('Couchbase smart interface', function () {
   });
 
   it('Set a new document', function (done) {
-    couchbase.insert(key, data, function (err) {
+    couchbase.insert(key, data, function (err, docId) {
       // Asserts
       assert.ifError(err);
+      assert.equal(typeof(docId), 'string');
       done();
     });
   });
