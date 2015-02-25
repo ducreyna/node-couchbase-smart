@@ -47,7 +47,12 @@ describe('Couchbase smart interface', function () {
     });
   });
 
-  it.skip('Remove all documents from a key', function (done) {
-
+  it('Remove all documents from a key', function (done) {
+    couchbase.remove(key, {}, function (err, nbDeletions) {
+      // Asserts
+      assert.ifError(err);
+      assert.ok(nbDeletions > 0);
+      done();
+    });
   });
 });
