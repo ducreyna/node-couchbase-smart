@@ -4,7 +4,13 @@ var CouchbaseSmart = require('../lib/CouchbaseSmart.js');
 var config = {
   'hosts': ['debian'],
   'ports': [8091],
-  'bucket': 'default'
+  'bucket': 'default',
+  'views': {
+    'search': {
+      'designDoc': 'search',
+      'designView': 'byKey'
+    }
+  }
 };
 var couchbase = new CouchbaseSmart(config);
 
@@ -29,10 +35,18 @@ describe('Couchbase smart interface', function () {
   });
 
   it('Get all documents from a key', function (done) {
-
+    couchbase.get(key, {}, function (err, result) {
+      // Asserts
+      assert.ifError(err);
+      assert.equal(result.length, 1);
+      assert.equal(typeof(result[0]), 'object');
+      assert.equal(typeof(result[0].time), 'number');
+      assert.equal(typeof(result[0].id), 'string');
+      done();
+    });
   });
 
-  it('Remove all documents from a key', function (done) {
+  it.skip('Remove all documents from a key', function (done) {
 
   });
 });
