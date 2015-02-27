@@ -50,26 +50,26 @@ describe('Couchbase smart interface', function () {
       couchbase.get(key, { 'ids': [id] }, function (err, result) {
         // Asserts
         assert.ifError(err);
-        assert.equal(result.length, 1);
-        assert.equal(typeof(result[0]), 'object');
-        assert.equal(typeof(result[0].time), 'number');
-        assert.equal(result[0].id, id);
+        assert.equal(result.hits.length, 1);
+        assert.equal(typeof(result.hits[0]), 'object');
+        assert.equal(typeof(result.hits[0].time), 'number');
+        assert.equal(result.hits[0].id, id);
         done();
       });
     });
 
     it('Remove document from its docId', function (done) {
-      couchbase.remove(key, { 'ids': [id] }, function (err, nbRemovals) {
+      couchbase.remove(key, { 'ids': [id] }, function (err, result) {
         // Asserts
         assert.ifError(err);
-        assert.equal(nbRemovals, 1);
+        assert.equal(result.total, 1);
         done();
       });
     });
   });
 
 
-  describe.only('Multi documents operations', function () {
+  describe('Multi documents operations', function () {
     var nbDocs = 5;
     var timeBegin = Date.now();
     var timeEnd = 0;
@@ -83,7 +83,7 @@ describe('Couchbase smart interface', function () {
         });
       }
 
-      async.parallel(adders, function (err) {
+      async.series(adders, function (err) {
         // Asserts
         assert.ifError(err);
         timeEnd = Date.now();
