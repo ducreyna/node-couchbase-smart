@@ -122,9 +122,9 @@ describe('Couchbase smart interface', function () {
         timesSorted.sort();
         assert.deepEqual(timesSrc, timesSorted);
         assert.equal(result.hits.length, nbDocs);
-        assert.equal(typeof(result.hits.[0]), 'object');
-        assert.equal(typeof(result.hits.[0].time), 'number');
-        assert.equal(typeof(result.hits.[0].id), 'string');
+        assert.equal(typeof(result.hits[0]), 'object');
+        assert.equal(typeof(result.hits[0].time), 'number');
+        assert.equal(typeof(result.hits[0].id), 'string');
         done();
       });
     });
@@ -203,10 +203,10 @@ describe('Couchbase smart interface', function () {
           'sort': 1,
           'afterIn': result.hits[0].time,
           'beforeEx': result.hits[3].time
-        }, function (innerErr, nbRemovals) {
+        }, function (innerErr, innerResult) {
           // Asserts
           assert.ifError(innerErr);
-          assert.ok(nbRemovals > 0);
+          assert.ok(innerResult.nbRemovals > 0);
           done();
         });
       });
