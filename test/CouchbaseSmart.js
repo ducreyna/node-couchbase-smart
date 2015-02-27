@@ -100,14 +100,14 @@ describe('Couchbase smart interface', function () {
         // Asserts
         assert.ifError(err);
 
-        var timesSrc = _.pluck(result, 'time');
-        var timesSorted = _.pluck(result, 'time');
+        var timesSrc = _.pluck(result.hits, 'time');
+        var timesSorted = _.pluck(result.hits, 'time');
         timesSorted.sort().reverse();
         assert.deepEqual(timesSrc, timesSorted);
-        assert.equal(result.length, nbDocs);
-        assert.equal(typeof(result[0]), 'object');
-        assert.equal(typeof(result[0].time), 'number');
-        assert.equal(typeof(result[0].id), 'string');
+        assert.equal(result.hits.length, nbDocs);
+        assert.equal(typeof(result.hits[0]), 'object');
+        assert.equal(typeof(result.hits[0].time), 'number');
+        assert.equal(typeof(result.hits[0].id), 'string');
         done();
       });
     });
@@ -117,14 +117,14 @@ describe('Couchbase smart interface', function () {
         // Asserts
         assert.ifError(err);
 
-        var timesSrc = _.pluck(result, 'time');
-        var timesSorted = _.pluck(result, 'time');
+        var timesSrc = _.pluck(result.hits, 'time');
+        var timesSorted = _.pluck(result.hits, 'time');
         timesSorted.sort();
         assert.deepEqual(timesSrc, timesSorted);
-        assert.equal(result.length, nbDocs);
-        assert.equal(typeof(result[0]), 'object');
-        assert.equal(typeof(result[0].time), 'number');
-        assert.equal(typeof(result[0].id), 'string');
+        assert.equal(result.hits.length, nbDocs);
+        assert.equal(typeof(result.hits.[0]), 'object');
+        assert.equal(typeof(result.hits.[0].time), 'number');
+        assert.equal(typeof(result.hits.[0].id), 'string');
         done();
       });
     });
@@ -133,7 +133,7 @@ describe('Couchbase smart interface', function () {
       couchbase.get(key, { 'sort': 1, 'beforeIn': timeBegin}, function (err, result) {
         // Asserts
         assert.ifError(err);
-        assert.equal(result.length, 0); // No records before the beginning of the insertions
+        assert.equal(result.hits.length, 0); // No records before the beginning of the insertions
         done();
       });
     });
@@ -142,11 +142,11 @@ describe('Couchbase smart interface', function () {
       couchbase.get(key, { 'sort': 1 }, function (err, result) {
         couchbase.get(key, {
           'sort': 1,
-          'beforeEx': result[4].time
+          'beforeEx': result.hits[4].time
         }, function (innerErr, innerResult) {
           // Asserts
           assert.ifError(innerErr);
-          assert.equal(innerResult.length, 4);
+          assert.equal(innerResult.hits.length, 4);
           done();
         });
       });
@@ -156,12 +156,12 @@ describe('Couchbase smart interface', function () {
       couchbase.get(key, { 'sort': 1 }, function (err, result) {
         couchbase.get(key, {
           'sort': 1,
-          'afterIn': result[0].time,
-          'beforeIn': result[3].time
+          'afterIn': result.hits[0].time,
+          'beforeIn': result.hits[3].time
         }, function (innerErr, innerResult) {
           // Asserts
           assert.ifError(innerErr);
-          assert.equal(innerResult.length, 4);
+          assert.equal(innerResult.hits.length, 4);
           done();
         });
       });
@@ -171,12 +171,12 @@ describe('Couchbase smart interface', function () {
       couchbase.get(key, { 'sort': 1 }, function (err, result) {
         couchbase.get(key, {
           'sort': 1,
-          'afterEx': result[0].time,
-          'beforeEx': result[4].time
+          'afterEx': result.hits[0].time,
+          'beforeEx': result.hits[4].time
         }, function (innerErr, innerResult) {
           // Asserts
           assert.ifError(innerErr);
-          assert.equal(innerResult.length, 3);
+          assert.equal(innerResult.hits.length, 3);
           done();
         });
       });
@@ -186,12 +186,12 @@ describe('Couchbase smart interface', function () {
       couchbase.get(key, { 'sort': 1 }, function (err, result) {
         couchbase.get(key, {
           'sort': -1,
-          'afterIn': result[0].time,
-          'beforeIn': result[3].time
+          'afterIn': result.hits[0].time,
+          'beforeIn': result.hits[3].time
         }, function (innerErr, innerResult) {
           // Asserts
           assert.ifError(innerErr);
-          assert.equal(innerResult.length, 4);
+          assert.equal(innerResult.hits.length, 4);
           done();
         });
       });
@@ -201,8 +201,8 @@ describe('Couchbase smart interface', function () {
       couchbase.get(key, { 'sort': 1 }, function (err, result) {
         couchbase.remove(key, {
           'sort': 1,
-          'afterIn': result[0].time,
-          'beforeEx': result[3].time
+          'afterIn': result.hits[0].time,
+          'beforeEx': result.hits[3].time
         }, function (innerErr, nbRemovals) {
           // Asserts
           assert.ifError(innerErr);
