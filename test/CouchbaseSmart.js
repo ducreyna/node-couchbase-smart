@@ -11,11 +11,11 @@ var config = {
     'search': {
       'designDoc': 'search',
       'designView': 'byKey'
+    },
+    'count': {
+      'designDoc': 'search',
+      'designView': 'count'
     }
-  },
-  'query': {
-    'sort': 1,
-    'limit': 1000
   }
 };
 var couchbase = new CouchbaseSmart(config);
@@ -197,6 +197,15 @@ describe('Couchbase smart interface', function () {
       });
     });
 
+    it('Count documents from its key', function (done) {
+      couchbase.count(key, function (err, result) {
+        // Asserts
+        assert.ifError(err);
+        assert.equal(result.total, nbDocs);
+        done();
+      });
+    });
+
     it('Remove documents from its key and an interval (afterIn + beforeEx)', function (done) {
       couchbase.get(key, { 'sort': 1 }, function (err, result) {
         couchbase.remove(key, {
@@ -206,7 +215,7 @@ describe('Couchbase smart interface', function () {
         }, function (innerErr, innerResult) {
           // Asserts
           assert.ifError(innerErr);
-          assert.ok(innerResult.nbRemovals > 0);
+          assert.ok(innerResult.total > 0);
           done();
         });
       });
