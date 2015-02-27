@@ -6,6 +6,7 @@ var CouchbaseSmart = require('../lib/CouchbaseSmart.js');
 var config = {
   'hosts': ['debian'],
   'ports': [8091],
+  'password': undefined,
   'bucket': 'default',
   'views': {
     'search': {
