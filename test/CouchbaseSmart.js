@@ -21,10 +21,15 @@ var config = {
 };
 var couchbase = new CouchbaseSmart(config);
 
+// #####################################################################################################################
+// ###################################################### T E S T S ####################################################
+// #####################################################################################################################
+
 describe('Couchbase smart interface', function () {
   var key = 'myKey';
   var data = 'I_AM_DATA';
 
+  // First segment
   describe('Single document operations', function () {
     var id = '';
 
@@ -68,7 +73,7 @@ describe('Couchbase smart interface', function () {
     });
   });
 
-
+  // Second segment
   describe('Multi documents operations', function () {
     var nbDocs = 5;
     var timeBegin = Date.now();
