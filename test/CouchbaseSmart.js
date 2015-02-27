@@ -1,4 +1,6 @@
 var assert = require('assert');
+var async = require('async');
+var _ = require('underscore');
 var CouchbaseSmart = require('../lib/CouchbaseSmart.js');
 
 var config = {
@@ -10,15 +12,19 @@ var config = {
       'designDoc': 'search',
       'designView': 'byKey'
     }
+  },
+  'query': {
+    'sort': 1,
+    'limit': 1000
   }
 };
 var couchbase = new CouchbaseSmart(config);
 
 describe('Couchbase smart interface', function () {
+  var key = 'myKey';
+  var data = 'I_AM_DATA';
 
-  describe('Basic operations', function () {
-    var key = 'myKey';
-    var data = 'I_AM_DATA';
+  describe('Single document operations', function () {
     var id = '';
 
     it('Set a new document with a bad key', function (done) {
@@ -39,11 +45,66 @@ describe('Couchbase smart interface', function () {
       });
     });
 
-    it('Get document from its key', function (done) {
-      couchbase.get(key, {}, function (err, result) {
+    it('Get document from its id', function (done) {
+      couchbase.get(key, { 'ids': [id] }, function (err, result) {
         // Asserts
         assert.ifError(err);
         assert.equal(result.length, 1);
+        assert.equal(typeof(result[0]), 'object');
+        assert.equal(typeof(result[0].time), 'number');
+        assert.equal(result[0].id, id);
+        done();
+      });
+    });
+
+    it('Remove document from its docId', function (done) {
+      couchbase.remove(key, { 'ids': [id] }, function (err, nbRemovals) {
+        // Asserts
+        assert.ifError(err);
+        assert.equal(nbRemovals, 1);
+        done();
+      });
+    });
+  });
+
+
+  describe.only('Multi documents operations', function () {
+    var nbDocs = 5;
+    var timeBegin = Date.now();
+    var timeEnd = 0;
+
+    before(function (done) {
+      // Fill the DB with a data sample
+      var adders = [];
+      for(var i = 0; i < nbDocs; i++) {
+        adders.push(function (localCb) {
+          couchbase.insert(key, data, localCb);
+        });
+      }
+
+      async.parallel(adders, function (err) {
+        // Asserts
+        assert.ifError(err);
+        timeEnd = Date.now();
+        done();
+      });
+    });
+
+    after(function (done) {
+      // Empty the DB
+      couchbase.remove(key, {}, done);
+    });
+
+    it('Get all documents from its key (sort DESCENDING)', function (done) {
+      couchbase.get(key, { 'sort': -1 }, function (err, result) {
+        // Asserts
+        assert.ifError(err);
+
+        var timesSrc = _.pluck(result, 'time');
+        var timesSorted = _.pluck(result, 'time');
+        timesSorted.sort().reverse();
+        assert.deepEqual(timesSrc, timesSorted);
+        assert.equal(result.length, nbDocs);
         assert.equal(typeof(result[0]), 'object');
         assert.equal(typeof(result[0].time), 'number');
         assert.equal(typeof(result[0].id), 'string');
@@ -51,12 +112,103 @@ describe('Couchbase smart interface', function () {
       });
     });
 
-    it('Remove document from its docId', function (done) {
-      couchbase.remove(key, { 'ids': [id] }, function (err, nbDeletions) {
+    it('Get all documents from its key (sort ASCENDING)', function (done) {
+      couchbase.get(key, { 'sort': 1 }, function (err, result) {
         // Asserts
         assert.ifError(err);
-        assert.equal(nbDeletions, 1);
+
+        var timesSrc = _.pluck(result, 'time');
+        var timesSorted = _.pluck(result, 'time');
+        timesSorted.sort();
+        assert.deepEqual(timesSrc, timesSorted);
+        assert.equal(result.length, nbDocs);
+        assert.equal(typeof(result[0]), 'object');
+        assert.equal(typeof(result[0].time), 'number');
+        assert.equal(typeof(result[0].id), 'string');
         done();
+      });
+    });
+
+    it('Get documents from its key and an interval (beforeIn)', function (done) {
+      couchbase.get(key, { 'sort': 1, 'beforeIn': timeBegin}, function (err, result) {
+        // Asserts
+        assert.ifError(err);
+        assert.equal(result.length, 0); // No records before the beginning of the insertions
+        done();
+      });
+    });
+
+    it('Get documents from its key and an interval (beforeEx)', function (done) {
+      couchbase.get(key, { 'sort': 1 }, function (err, result) {
+        couchbase.get(key, {
+          'sort': 1,
+          'beforeEx': result[4].time
+        }, function (innerErr, innerResult) {
+          // Asserts
+          assert.ifError(innerErr);
+          assert.equal(innerResult.length, 4);
+          done();
+        });
+      });
+    });
+
+    it('Get documents from its key and an interval (afterIn + beforeIn)', function (done) {
+      couchbase.get(key, { 'sort': 1 }, function (err, result) {
+        couchbase.get(key, {
+          'sort': 1,
+          'afterIn': result[0].time,
+          'beforeIn': result[3].time
+        }, function (innerErr, innerResult) {
+          // Asserts
+          assert.ifError(innerErr);
+          assert.equal(innerResult.length, 4);
+          done();
+        });
+      });
+    });
+
+    it('Get documents from its key and an interval (afterEx + beforeEx)', function (done) {
+      couchbase.get(key, { 'sort': 1 }, function (err, result) {
+        couchbase.get(key, {
+          'sort': 1,
+          'afterEx': result[0].time,
+          'beforeEx': result[4].time
+        }, function (innerErr, innerResult) {
+          // Asserts
+          assert.ifError(innerErr);
+          assert.equal(innerResult.length, 3);
+          done();
+        });
+      });
+    });
+
+    it('Get documents from its key and an interval (afterIn + beforeIn) with sort inversed', function (done) {
+      couchbase.get(key, { 'sort': 1 }, function (err, result) {
+        couchbase.get(key, {
+          'sort': -1,
+          'afterIn': result[0].time,
+          'beforeIn': result[3].time
+        }, function (innerErr, innerResult) {
+          // Asserts
+          assert.ifError(innerErr);
+          assert.equal(innerResult.length, 4);
+          done();
+        });
+      });
+    });
+
+    it('Remove documents from its key and an interval (afterIn + beforeEx)', function (done) {
+      couchbase.get(key, { 'sort': 1 }, function (err, result) {
+        couchbase.remove(key, {
+          'sort': 1,
+          'afterIn': result[0].time,
+          'beforeEx': result[3].time
+        }, function (innerErr, nbRemovals) {
+          // Asserts
+          assert.ifError(innerErr);
+          assert.ok(nbRemovals > 0);
+          done();
+        });
       });
     });
   });
